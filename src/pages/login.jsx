@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Box,
@@ -26,6 +25,9 @@ import {
   Visibility,
   VisibilityOff
 } from '@mui/icons-material';
+
+// API Configuration
+const API_URL = 'http://localhost:5000/api';
 
 // Styled components for custom styling
 const StyledContainer = styled(Box)(() => ({
@@ -163,13 +165,36 @@ export default function Login() {
       if (!loginData.email || !loginData.password) {
         throw new Error('Please fill in all required fields');
       }
+
+      const response = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: loginData.email,
+          password: loginData.password,
+          userType: loginData.userType
+        })
+      });
       
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      
+      // Store authentication token
+      localStorage.setItem('authToken', data.token);
+      
+      // Handle remember me
+      if (loginData.rememberMe) {
+        localStorage.setItem('rememberUser', JSON.stringify({
+          email: loginData.email,
+          userType: loginData.userType
+        }));
+      }
+      
       setSuccess(`Welcome back! Redirecting to ${loginData.userType} dashboard...`);
       
       setTimeout(() => {
-        console.log(`Redirecting to ${loginData.userType} dashboard`);
-      }, 1000);
+        window.location.href = data.redirectTo;
+      }, 1500);
       
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
@@ -195,19 +220,27 @@ export default function Login() {
       if (!registerData.agreeToTerms) {
         throw new Error('Please agree to the terms and conditions');
       }
+
+      const response = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: registerData.email,
+          password: registerData.password,
+          userType: registerData.userType
+        })
+      });
       
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      setSuccess('Account created successfully! Please log in to complete your profile.');
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      
+      // Store authentication token
+      localStorage.setItem('authToken', data.token);
+      
+      setSuccess('Account created successfully! Redirecting to complete your profile...');
       
       setTimeout(() => {
-        setRegisterData({
-          email: '',
-          password: '',
-          confirmPassword: '',
-          userType: 'volunteer',
-          agreeToTerms: false
-        });
-        setTabValue(0); // Switch to login tab
+        window.location.href = '/profile';
       }, 2000);
       
     } catch (err) {
@@ -228,312 +261,309 @@ export default function Login() {
   return (
     <StyledContainer>
       <StyledPaper elevation={10}>
-          {/* Header */}
-          <Box textAlign="center" mb={3}>
-            <LogoBox>
-              <VolunteerActivism sx={{ fontSize: 30 }} />
-            </LogoBox>
-            <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom sx={{ color: '#333333' }}>
-              VolunteerConnect
-            </Typography>
-            <Typography variant="body1" sx={{ color: '#666666' }}>
-              Connecting hearts, building communities
-            </Typography>
-          </Box>
+        {/* Header */}
+        <Box textAlign="center" mb={3}>
+          <LogoBox>
+            <VolunteerActivism sx={{ fontSize: 30 }} />
+          </LogoBox>
+          <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom sx={{ color: '#333333' }}>
+            VolunteerConnect
+          </Typography>
+          <Typography variant="body1" sx={{ color: '#666666' }}>
+            Connecting hearts, building communities
+          </Typography>
+        </Box>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-              {error}
-            </Alert>
-          )}
-          {success && (
-            <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
-              {success}
-            </Alert>
-          )}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+            {error}
+          </Alert>
+        )}
+        {success && (
+          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+            {success}
+          </Alert>
+        )}
 
-          <Box sx={{ borderBottom: 1, borderColor: '#e0e6ed', mb: 2 }}>
-            <Tabs 
-              value={tabValue} 
-              onChange={handleTabChange} 
-              centered
-              variant="fullWidth"
-              sx={{
-                '& .MuiTab-root': {
-                  color: '#666666',
-                  '&.Mui-selected': {
-                    color: '#3AB795'
-                  }
-                },
-                '& .MuiTabs-indicator': {
-                  backgroundColor: '#3AB795'
+        <Box sx={{ borderBottom: 1, borderColor: '#e0e6ed', mb: 2 }}>
+          <Tabs 
+            value={tabValue} 
+            onChange={handleTabChange} 
+            centered
+            variant="fullWidth"
+            sx={{
+              '& .MuiTab-root': {
+                color: '#666666',
+                '&.Mui-selected': {
+                  color: '#3AB795'
                 }
-              }}
-            >
-              <Tab 
-                label="Sign In" 
-                icon={<Person />} 
-                iconPosition="start"
-                sx={{ textTransform: 'none', fontSize: '1rem' }}
-              />
-              <Tab 
-                label="Sign Up" 
-                icon={<VolunteerActivism />} 
-                iconPosition="start"
-                sx={{ textTransform: 'none', fontSize: '1rem' }}
-              />
-            </Tabs>
-          </Box>
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: '#3AB795'
+              }
+            }}
+          >
+            <Tab 
+              label="Sign In" 
+              icon={<Person />} 
+              iconPosition="start"
+              sx={{ textTransform: 'none', fontSize: '1rem' }}
+            />
+            <Tab 
+              label="Sign Up" 
+              icon={<VolunteerActivism />} 
+              iconPosition="start"
+              sx={{ textTransform: 'none', fontSize: '1rem' }}
+            />
+          </Tabs>
+        </Box>
 
-          <TabPanel value={tabValue} index={0}>
-            <Box component="form" onSubmit={handleLoginSubmit}>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" gutterBottom fontWeight={500} sx={{ color: '#333333' }}>
-                  I am a:
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <UserTypeButton
-                    selected={loginData.userType === 'volunteer'}
-                    startIcon={<VolunteerActivism />}
-                    onClick={() => handleInputChange('login', 'userType', 'volunteer')}
-                  >
-                    Volunteer
-                  </UserTypeButton>
-                  <UserTypeButton
-                    selected={loginData.userType === 'admin'}
-                    startIcon={<AdminPanelSettings />}
-                    onClick={() => handleInputChange('login', 'userType', 'admin')}
-                  >
-                    Admin
-                  </UserTypeButton>
-                </Box>
-              </Box>
-
-              <TextField
-                fullWidth
-                type="email"
-                label="Email Address"
-                value={loginData.email}
-                onChange={(e) => handleInputChange('login', 'email', e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Email color="action" />
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ mb: 2 }}
-                required
-              />
-
-              <TextField
-                fullWidth
-                type={showPassword.login ? 'text' : 'password'}
-                label="Password"
-                value={loginData.password}
-                onChange={(e) => handleInputChange('login', 'password', e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => handlePasswordVisibility('login')}
-                        edge="end"
-                      >
-                        {showPassword.login ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ mb: 2 }}
-                required
-              />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={loginData.rememberMe}
-                      onChange={(e) => handleInputChange('login', 'rememberMe', e.target.checked)}
-                      sx={{ 
-                        color: '#3AB795',
-                        '&.Mui-checked': { color: '#3AB795' }
-                      }}
-                    />
-                  }
-                  label="Remember me"
-                />
-                <Link 
-                  href="#" 
-                  variant="body2" 
-                  sx={{ textDecoration: 'none', color: '#3AB795' }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setSuccess('Password reset link sent to your email!');
-                  }}
+        <TabPanel value={tabValue} index={0}>
+          <Box component="form" onSubmit={handleLoginSubmit}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom fontWeight={500} sx={{ color: '#333333' }}>
+                I am a:
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <UserTypeButton
+                  selected={loginData.userType === 'volunteer'}
+                  startIcon={<VolunteerActivism />}
+                  onClick={() => handleInputChange('login', 'userType', 'volunteer')}
                 >
-                  Forgot password?
-                </Link>
+                  Volunteer
+                </UserTypeButton>
+                <UserTypeButton
+                  selected={loginData.userType === 'admin'}
+                  startIcon={<AdminPanelSettings />}
+                  onClick={() => handleInputChange('login', 'userType', 'admin')}
+                >
+                  Admin
+                </UserTypeButton>
               </Box>
-
-              <StyledButton
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                disabled={loading}
-                sx={{ mb: 2 }}
-              >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
-              </StyledButton>
             </Box>
-          </TabPanel>
 
-          <TabPanel value={tabValue} index={1}>
-            <Box component="form" onSubmit={handleRegisterSubmit}>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" gutterBottom fontWeight={500} sx={{ color: '#333333' }}>
-                  I want to:
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <UserTypeButton
-                    selected={registerData.userType === 'volunteer'}
-                    startIcon={<VolunteerActivism />}
-                    onClick={() => handleInputChange('register', 'userType', 'volunteer')}
-                  >
-                    Volunteer
-                  </UserTypeButton>
-                  <UserTypeButton
-                    selected={registerData.userType === 'admin'}
-                    startIcon={<AdminPanelSettings />}
-                    onClick={() => handleInputChange('register', 'userType', 'admin')}
-                  >
-                    Organize Events
-                  </UserTypeButton>
-                </Box>
-              </Box>
+            <TextField
+              fullWidth
+              type="email"
+              label="Email Address"
+              value={loginData.email}
+              onChange={(e) => handleInputChange('login', 'email', e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Email color="action" />
+                  </InputAdornment>
+                )
+              }}
+              sx={{ mb: 2 }}
+              required
+            />
 
-              <TextField
-                fullWidth
-                type="email"
-                label="Email Address"
-                value={registerData.email}
-                onChange={(e) => handleInputChange('register', 'email', e.target.value)}
-                sx={{ mb: 2 }}
-                required
-              />
+            <TextField
+              fullWidth
+              type={showPassword.login ? 'text' : 'password'}
+              label="Password"
+              value={loginData.password}
+              onChange={(e) => handleInputChange('login', 'password', e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Lock color="action" />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => handlePasswordVisibility('login')}
+                      edge="end"
+                    >
+                      {showPassword.login ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              sx={{ mb: 2 }}
+              required
+            />
 
-              <TextField
-                fullWidth
-                type={showPassword.register ? 'text' : 'password'}
-                label="Password"
-                value={registerData.password}
-                onChange={(e) => handleInputChange('register', 'password', e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => handlePasswordVisibility('register')}
-                        edge="end"
-                      >
-                        {showPassword.register ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ mb: 2 }}
-                required
-              />
-
-              <TextField
-                fullWidth
-                type={showPassword.confirm ? 'text' : 'password'}
-                label="Confirm Password"
-                value={registerData.confirmPassword}
-                onChange={(e) => handleInputChange('register', 'confirmPassword', e.target.value)}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => handlePasswordVisibility('confirm')}
-                        edge="end"
-                      >
-                        {showPassword.confirm ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ mb: 3 }}
-                required
-              />
-
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <FormControlLabel
                 control={
                   <Checkbox
-                    checked={registerData.agreeToTerms}
-                    onChange={(e) => handleInputChange('register', 'agreeToTerms', e.target.checked)}
-                    required
+                    checked={loginData.rememberMe}
+                    onChange={(e) => handleInputChange('login', 'rememberMe', e.target.checked)}
                     sx={{ 
                       color: '#3AB795',
                       '&.Mui-checked': { color: '#3AB795' }
                     }}
                   />
                 }
-                label={
-                  <Typography variant="body2">
-                    I agree to the{' '}
-                    <Link 
-                      href="#" 
-                      sx={{ textDecoration: 'none', color: '#3AB795' }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSuccess('Terms of Service opened');
-                      }}
-                    >
-                      Terms of Service
-                    </Link>{' '}
-                    and{' '}
-                    <Link 
-                      href="#" 
-                      sx={{ textDecoration: 'none', color: '#3AB795' }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setSuccess('Privacy Policy opened');
-                      }}
-                    >
-                      Privacy Policy
-                    </Link>
-                  </Typography>
-                }
-                sx={{ mb: 3, alignItems: 'flex-start' }}
+                label="Remember me"
               />
-
-              <StyledButton
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
-                disabled={loading}
-                sx={{ mb: 2 }}
+              <Link 
+                href="#" 
+                variant="body2" 
+                sx={{ textDecoration: 'none', color: '#3AB795' }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  setSuccess('Password reset functionality coming soon!');
+                }}
               >
-                {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
-              </StyledButton>
+                Forgot password?
+              </Link>
             </Box>
-          </TabPanel>
 
-          <Box textAlign="center" sx={{ mt: 3, pt: 2, borderTop: '1px solid #e0e6ed' }}>
-            <Typography variant="body2" sx={{ color: '#666666' }}>
-              After registration, you'll complete your profile with address, skills, and availability details
-            </Typography>
+            <StyledButton
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              disabled={loading}
+              sx={{ mb: 2 }}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Sign In'}
+            </StyledButton>
           </Box>
-        </StyledPaper>
+        </TabPanel>
+
+        <TabPanel value={tabValue} index={1}>
+          <Box component="form" onSubmit={handleRegisterSubmit}>
+            <Box sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom fontWeight={500} sx={{ color: '#333333' }}>
+                I want to:
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <UserTypeButton
+                  selected={registerData.userType === 'volunteer'}
+                  startIcon={<VolunteerActivism />}
+                  onClick={() => handleInputChange('register', 'userType', 'volunteer')}
+                >
+                  Volunteer
+                </UserTypeButton>
+                <UserTypeButton
+                  selected={registerData.userType === 'admin'}
+                  startIcon={<AdminPanelSettings />}
+                  onClick={() => handleInputChange('register', 'userType', 'admin')}
+                >
+                  Organize Events
+                </UserTypeButton>
+              </Box>
+            </Box>
+
+            <TextField
+              fullWidth
+              type="email"
+              label="Email Address"
+              value={registerData.email}
+              onChange={(e) => handleInputChange('register', 'email', e.target.value)}
+              sx={{ mb: 2 }}
+              required
+            />
+
+            <TextField
+              fullWidth
+              type={showPassword.register ? 'text' : 'password'}
+              label="Password"
+              value={registerData.password}
+              onChange={(e) => handleInputChange('register', 'password', e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => handlePasswordVisibility('register')}
+                      edge="end"
+                    >
+                      {showPassword.register ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              sx={{ mb: 2 }}
+              required
+            />
+
+            <TextField
+              fullWidth
+              type={showPassword.confirm ? 'text' : 'password'}
+              label="Confirm Password"
+              value={registerData.confirmPassword}
+              onChange={(e) => handleInputChange('register', 'confirmPassword', e.target.value)}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      onClick={() => handlePasswordVisibility('confirm')}
+                      edge="end"
+                    >
+                      {showPassword.confirm ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                )
+              }}
+              sx={{ mb: 3 }}
+              required
+            />
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={registerData.agreeToTerms}
+                  onChange={(e) => handleInputChange('register', 'agreeToTerms', e.target.checked)}
+                  required
+                  sx={{ 
+                    color: '#3AB795',
+                    '&.Mui-checked': { color: '#3AB795' }
+                  }}
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  I agree to the{' '}
+                  <Link 
+                    href="#" 
+                    sx={{ textDecoration: 'none', color: '#3AB795' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setSuccess('Terms of Service opened');
+                    }}
+                  >
+                    Terms of Service
+                  </Link>{' '}
+                  and{' '}
+                  <Link 
+                    href="#" 
+                    sx={{ textDecoration: 'none', color: '#3AB795' }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setSuccess('Privacy Policy opened');
+                    }}
+                  >
+                    Privacy Policy
+                  </Link>
+                </Typography>
+              }
+              sx={{ mb: 3, alignItems: 'flex-start' }}
+            />
+
+            <StyledButton
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              disabled={loading}
+              sx={{ mb: 2 }}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Account'}
+            </StyledButton>
+          </Box>
+        </TabPanel>
+
+        <Box textAlign="center" sx={{ mt: 3, pt: 2, borderTop: '1px solid #e0e6ed' }}>
+          <Typography variant="body2" sx={{ color: '#666666' }}>
+            After registration, you'll complete your profile with address, skills, and availability details
+          </Typography>
+        </Box>
+      </StyledPaper>
     </StyledContainer>
   );
 }
-
-
-

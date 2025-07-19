@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -20,8 +20,12 @@ import {
   LocationOn,
   Work,
   CalendarToday,
-  Save
+  Save,
+  ExitToApp
 } from '@mui/icons-material';
+
+// API Configuration
+const API_URL = 'http://localhost:5000/api';
 
 // Styled components matching login.jsx
 const StyledContainer = styled(Box)(() => ({
@@ -190,6 +194,7 @@ export default function UserProfileManagement() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   
   const [profileData, setProfileData] = useState({
     fullName: '',
@@ -204,6 +209,27 @@ export default function UserProfileManagement() {
   });
 
   const [newDate, setNewDate] = useState('');
+
+  // Check if user is logged in
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setError('Please log in to access your profile');
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 2000);
+      return;
+    }
+
+    // Get user email from token (simple decode)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      setUserEmail(payload.userId === 1 ? 'admin@test.com' : 'volunteer@test.com');
+    } catch (err) {
+      console.error('Token decode error:', err);
+      setUserEmail('User');
+    }
+  }, []);
 
   const handleInputChange = (field, value) => {
     setProfileData(prev => ({
@@ -222,11 +248,22 @@ export default function UserProfileManagement() {
 
   const handleAddDate = () => {
     if (newDate && !profileData.availability.includes(newDate)) {
+      // Check if date is in the future
+      const selectedDate = new Date(newDate);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
+        setError('Cannot select dates in the past');
+        return;
+      }
+
       setProfileData(prev => ({
         ...prev,
         availability: [...prev.availability, newDate]
       }));
       setNewDate('');
+      setError(''); // Clear any previous date errors
     }
   };
 
@@ -238,7 +275,7 @@ export default function UserProfileManagement() {
   };
 
   const validateForm = () => {
-    // Required field validation
+    // Required field validation matching backend requirements
     if (!profileData.fullName.trim()) {
       throw new Error('Full Name is required');
     }
@@ -297,18 +334,27 @@ export default function UserProfileManagement() {
     setSuccess('');
     
     try {
+      // Client-side validation
       validateForm();
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Submit to backend
+      const response = await fetch(`${API_URL}/profile`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify(profileData)
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
       
       setSuccess('Profile saved successfully! Redirecting to dashboard...');
       
-      // Simulate redirect to dashboard
+      // Redirect based on backend response
       setTimeout(() => {
-        console.log('Redirecting to dashboard with profile:', profileData);
-        // Here you would redirect to the appropriate dashboard
-        // window.location.href = '/volunteer' or '/admin'
+        window.location.href = data.redirectTo || '/volunteer';
       }, 2000);
       
     } catch (err) {
@@ -318,20 +364,42 @@ export default function UserProfileManagement() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('rememberUser');
+    window.location.href = '/';
+  };
+
   return (
     <StyledContainer>
       <StyledPaper elevation={10}>
         {/* Header */}
-        <Box textAlign="center" mb={3}>
-          <LogoBox>
-            <Person sx={{ fontSize: 30 }} />
-          </LogoBox>
-          <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom sx={{ color: '#333333' }}>
-            Complete Your Profile
-          </Typography>
-          <Typography variant="body1" sx={{ color: '#666666' }}>
-            Please provide your details to help us match you with volunteer opportunities
-          </Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+          <Box textAlign="center" flex={1}>
+            <LogoBox>
+              <Person sx={{ fontSize: 30 }} />
+            </LogoBox>
+            <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom sx={{ color: '#333333' }}>
+              Complete Your Profile
+            </Typography>
+            <Typography variant="body1" sx={{ color: '#666666' }}>
+              Welcome {userEmail}! Please complete your profile to get started.
+            </Typography>
+          </Box>
+          
+          <Button
+            onClick={handleLogout}
+            startIcon={<ExitToApp />}
+            sx={{ 
+              color: '#666666', 
+              textTransform: 'none',
+              position: 'absolute',
+              top: 20,
+              right: 20
+            }}
+          >
+            Logout
+          </Button>
         </Box>
 
         {/* Alert Messages */}
@@ -523,7 +591,7 @@ export default function UserProfileManagement() {
           {profileData.availability.length > 0 && (
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle2" sx={{ mb: 1, color: '#333333' }}>
-                Selected Dates:
+                Selected Dates ({profileData.availability.length}):
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                 {profileData.availability.map((date, index) => (
