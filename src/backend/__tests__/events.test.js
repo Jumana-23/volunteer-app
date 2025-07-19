@@ -1,5 +1,5 @@
-const request = require('supertest');
-const app = require('../server'); // export app from server.js
+import request from 'supertest';
+import app from '../../../server.js';
 
 describe('Events API', () => {
   it('should return all events', async () => {

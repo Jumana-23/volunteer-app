@@ -1,6 +1,14 @@
 import express from 'express';
 import cors from 'cors';
 import eventsRouter from './routes/eventRoutes.js'; 
+import volunteerMatchRouter from './backend/volunteerMatchingRoutes.js';
+import eventHistoryRouter from './routes/eventHistoryRoutes.js';
+
+app.use('/api/eventHistory', eventHistoryRouter);
+
+
+app.use('/api/matches', volunteerMatchRouter);
+
 
 const app = express();
 const PORT = 3001;

@@ -58,8 +58,13 @@ export default function EventHistory() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('http://localhost:3000/api/volunteerHistory')
-      .then((res) => res.json())
+    fetch('/api/volunteerHistory') // ✅ using Vite proxy
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Failed to fetch history');
+        }
+        return res.json();
+      })
       .then((data) => setPastEvents(data))
       .catch((err) => console.error('Error fetching event history:', err));
   }, []);
@@ -91,13 +96,19 @@ export default function EventHistory() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {pastEvents.map((record, index) => (
-                <TableRow key={index}>
-                  <TableCell>{record.volunteerName}</TableCell>
-                  <TableCell>{record.eventName}</TableCell>
-                  <TableCell>{record.hours}</TableCell>
+              {pastEvents.length > 0 ? (
+                pastEvents.map((record, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{record.volunteerName}</TableCell>
+                    <TableCell>{record.eventName}</TableCell>
+                    <TableCell>{record.hours}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={3}>No event history found.</TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </Box>
