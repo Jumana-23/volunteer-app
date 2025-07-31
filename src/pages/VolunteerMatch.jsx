@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -10,7 +10,8 @@ import {
   Button,
   Paper,
   styled,
-  Container
+  Container,
+  CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
@@ -56,11 +57,32 @@ const GradientButton = styled(Button)(() => ({
 
 export default function VolunteerMatch() {
   const navigate = useNavigate();
-
-  const events = [
-    { id: 1, title: 'Food Drive', location: 'Midtown', volunteers: ['Sam', 'Alex'] },
-    { id: 2, title: 'Clothing Distribution', location: 'East Side', volunteers: ['Jamie'] },
-  ];
+  const [events, setEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // API configuration
+  const API_URL = 'http://localhost:5000/api';
+  
+  // Fetch events from backend
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch(`${API_URL}/events`);
+      if (response.ok) {
+        const data = await response.json();
+        setEvents(data);
+      } else {
+        console.error('Failed to fetch events');
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  useEffect(() => {
+    fetchEvents();
+  }, []);
 
   return (
     <StyledContainer>
@@ -84,11 +106,29 @@ export default function VolunteerMatch() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {events.map((event) => (
-              <TableRow key={event.id}>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
+            ) : events.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  No events found
+                </TableCell>
+              </TableRow>
+            ) : (
+              events.map((event) => (
+              <TableRow key={event._id}>
                 <TableCell>{event.title}</TableCell>
                 <TableCell>{event.location}</TableCell>
-                <TableCell>{event.volunteers.join(', ')}</TableCell>
+                <TableCell>
+                  {event.assignedVolunteers && event.assignedVolunteers.length > 0 
+                    ? event.assignedVolunteers.map(v => v.name || v.email).join(', ')
+                    : 'No volunteers assigned'
+                  }
+                </TableCell>
                 <TableCell>
                   <Button
                     variant="contained"
@@ -100,11 +140,12 @@ export default function VolunteerMatch() {
                       }
                     }}
                   >
-                    Match More
+                    Match Volunteers
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </StyledPaper>
