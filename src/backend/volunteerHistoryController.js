@@ -1,11 +1,11 @@
-import { getAllVolunteerHistory, addVolunteerHistory } from './volunteerHistoryService.js';
+const { getAllVolunteerHistory, addVolunteerHistory } = require('./volunteerHistoryService.js');
 
-export function getVolunteerHistory(req, res) {
+function getVolunteerHistory(req, res) {
   const data = getAllVolunteerHistory();
   res.json(data);
 }
 
-export function postVolunteerHistory(req, res) {
+function postVolunteerHistory(req, res) {
   try {
     const addedRecord = addVolunteerHistory(req.body);
     res.status(201).json(addedRecord);
@@ -13,3 +13,8 @@ export function postVolunteerHistory(req, res) {
     res.status(400).json({ error: error.message });
   }
 }
+
+module.exports = {
+  getVolunteerHistory,
+  postVolunteerHistory
+};

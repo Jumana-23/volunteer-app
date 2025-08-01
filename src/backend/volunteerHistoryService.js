@@ -1,15 +1,20 @@
-import { validateVolunteerHistory } from './validations.js';
+const { validateVolunteerHistory } = require('./validations.js');
 
 const volunteerHistoryData = [
   { volunteerName: 'John Doe', eventName: 'Beach Cleanup', hours: 5 },
 ];
 
-export function getAllVolunteerHistory() {
+function getAllVolunteerHistory() {
   return volunteerHistoryData;
 }
 
-export function addVolunteerHistory(record) {
+function addVolunteerHistory(record) {
   validateVolunteerHistory(record);
   volunteerHistoryData.push(record);
   return record;
 }
+
+module.exports = {
+  getAllVolunteerHistory,
+  addVolunteerHistory
+};

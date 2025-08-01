@@ -1,9 +1,19 @@
-import express from 'express';
-import { getMatches, postMatch } from './volunteerMatchingController.js';
+const express = require('express');
+const { 
+  getMatches, 
+  postMatch, 
+  autoMatch, 
+  getVolunteerSuggestionsForEvent 
+} = require('./volunteerMatchingController');
 
 const router = express.Router();
 
+// Basic matching routes
 router.get('/', getMatches);
 router.post('/', postMatch);
 
-export default router;
+// Auto-matching routes
+router.get('/auto-match/:eventId', autoMatch);
+router.get('/suggestions/:eventId', getVolunteerSuggestionsForEvent);
+
+module.exports = router;

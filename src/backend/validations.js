@@ -1,4 +1,4 @@
-export function validateVolunteerHistory(data) {
+function validateVolunteerHistory(data) {
   if (!data.volunteerName || typeof data.volunteerName !== 'string') {
     throw new Error('Volunteer Name is required');
   }
@@ -13,3 +13,7 @@ export function validateVolunteerHistory(data) {
   }
   return true;
 }
+
+module.exports = {
+  validateVolunteerHistory
+};

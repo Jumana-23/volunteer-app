@@ -1,6 +1,6 @@
 const eventHistory = [];
 
-export function logEventHistory(event) {
+function logEventHistory(event) {
   eventHistory.push({
     title: event.title,
     location: event.location,
@@ -8,6 +8,11 @@ export function logEventHistory(event) {
   });
 }
 
-export function getEventHistory() {
+function getEventHistory() {
   return eventHistory;
 }
+
+module.exports = {
+  logEventHistory,
+  getEventHistory
+};

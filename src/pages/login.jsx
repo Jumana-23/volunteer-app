@@ -177,8 +177,7 @@ export default function Login() {
       });
       
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error);
-      
+      if (!response.ok) throw new Error(data.error);      
       // Store authentication token
       localStorage.setItem('authToken', data.token);
       
