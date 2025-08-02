@@ -1,5 +1,5 @@
-import { describe, test, expect } from '@jest/globals';
-import { validateVolunteerHistory } from '../validations.js';
+//const { describe, test, expect } = require('@jest/globals');
+const { validateVolunteerHistory } = require('../validations');
 
 describe('validateVolunteerHistory', () => {
   test('validates correct volunteer data', () => {
@@ -20,5 +20,4 @@ describe('validateVolunteerHistory', () => {
   test('throws error for invalid hours', () => {
     const invalidData = { volunteerName: 'Aizah', eventName: 'Food Drive', hours: -1 };
     expect(() => validateVolunteerHistory(invalidData)).toThrow('Hours must be between 0 and 1000');
-  });
-});
+ 

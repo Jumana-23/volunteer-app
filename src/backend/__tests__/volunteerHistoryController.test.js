@@ -1,6 +1,7 @@
-import { describe, test, expect, jest } from '@jest/globals';
-import { getVolunteerHistory, postVolunteerHistory } from '../volunteerHistoryController.js';
-import * as service from '../volunteerHistoryService.js';
+//const { describe, test, expect, jest } = require('@jest/globals');
+const { getVolunteerHistory, postVolunteerHistory } = require('../volunteerHistoryController.js');
+const service = require('../volunteerHistoryService.js');
+
 
 jest.mock('../volunteerHistoryService.js');
 
@@ -35,7 +36,4 @@ describe('VolunteerHistoryController', () => {
 
     postVolunteerHistory(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid data' });
-  });
-});
-
+    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid data' })

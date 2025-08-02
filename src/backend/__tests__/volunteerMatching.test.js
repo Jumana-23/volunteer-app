@@ -1,5 +1,5 @@
-import request from 'supertest';
-import app from '../../server.js';
+const request = require('supertest');
+const app = require('../server.js'); 
 
 describe('Volunteer Matching API', () => {
   it('GET /api/matches returns matches', async () => {
@@ -29,5 +29,4 @@ describe('Volunteer Matching API', () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body).toHaveProperty('error');
-  });
-});
+  
