@@ -29,4 +29,5 @@ describe('Volunteer Matching API', () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body).toHaveProperty('error');
-  
+  });
+});

@@ -36,4 +36,7 @@ describe('VolunteerHistoryController', () => {
 
     postVolunteerHistory(req, res);
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid data' })
+    expect(res.json).toHaveBeenCalledWith({ error: 'Invalid data' });
+  });
+});
+
