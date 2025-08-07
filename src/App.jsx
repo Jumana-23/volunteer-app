@@ -7,6 +7,7 @@ import AdminNotifications from './pages/AdminNotifications';
 import EventHistory from './pages/EventHistory';
 import UserProfileManagement from './pages/UserProfileManagement';
 import { SocketProvider } from './contexts/SocketContext';
+import Reports from './pages/Reports';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/notifications" element={<AdminNotifications />} />
           <Route path="/history" element={<EventHistory />} />
           <Route path="/profile" element={<UserProfileManagement />} />
+          <Route path="/reports" element={<Reports />} />
         </Routes>
       </Router>
     </SocketProvider>
@@ -27,4 +29,3 @@ function App() {
 }
 
 export default App;
-
