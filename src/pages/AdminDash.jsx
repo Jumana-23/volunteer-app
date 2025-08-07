@@ -65,6 +65,8 @@ import { useNavigate } from 'react-router-dom';
 import skills from '../assets/skills';
 import users from '../assets/users';
 import EventFormDialog from '../components/EventFormDialog';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+
 
 // API Configuration
 const API_URL = 'http://localhost:5000/api';
@@ -648,35 +650,43 @@ export default function AdminDash() {
   return (
     <>
       {/* Professional AppBar */}
-       <AppBar position="fixed" sx={{ 
-         background: 'linear-gradient(to right, #3AB795, #F76C5E, #FFD972)',
-         backdropFilter: 'blur(10px)',
-         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-       }}>
-        <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <NavButton onClick={() => navigate('/admin')}>Dashboard</NavButton>
-            <NavButton onClick={() => setShowMatchingForm(true)}>
-              <MatchIcon sx={{ mr: 1 }} />
-              Match Volunteers
-            </NavButton>
-            <NavButton onClick={() => setShowNotifications(true)}>
-              <Badge badgeContent={notifications.length} color="error">
-                <NotificationsIcon sx={{ mr: 1 }} />
-              </Badge>
-              Notifications
-            </NavButton>
-            <NavButton onClick={() => setShowHistory(true)}>
-              <HistoryIcon sx={{ mr: 1 }} />
-              Volunteer History
-            </NavButton>
-          </Box>
-          <NavButton onClick={logout}>
-            <LogoutIcon sx={{ mr: 1 }} />
-            Logout
-          </NavButton>
-        </Toolbar>
-      </AppBar>
+      <AppBar position="fixed" sx={{ 
+  background: 'linear-gradient(to right, #3AB795, #F76C5E, #FFD972)',
+  backdropFilter: 'blur(10px)',
+  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+}}>
+  <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+      <NavButton onClick={() => navigate('/admin')}>Dashboard</NavButton>
+      <NavButton onClick={() => setShowMatchingForm(true)}>
+        <MatchIcon sx={{ mr: 1 }} />
+        Match Volunteers
+      </NavButton>
+      <NavButton onClick={() => setShowNotifications(true)}>
+        <Badge badgeContent={notifications.length} color="error">
+          <NotificationsIcon sx={{ mr: 1 }} />
+        </Badge>
+        Notifications
+      </NavButton>
+      <NavButton onClick={() => setShowHistory(true)}>
+        <HistoryIcon sx={{ mr: 1 }} />
+        Volunteer History
+      </NavButton>
+
+      
+      <NavButton onClick={() => navigate('/reports')}>
+        <AssessmentIcon sx={{ mr: 1 }} />
+        Reports
+      </NavButton>
+      
+    </Box>
+
+    <NavButton onClick={logout}>
+      <LogoutIcon sx={{ mr: 1 }} />
+      Logout
+    </NavButton>
+  </Toolbar>
+</AppBar>
 
       {/* Page Container */}
       <StyledContainer>
