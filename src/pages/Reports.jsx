@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Paper,
-  Container,
   Table,
   TableHead,
   TableRow,
@@ -18,7 +17,7 @@ import {
   styled,
 } from '@mui/material';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import Papa from 'papaparse';
 
 const API = '/api';
@@ -114,6 +113,7 @@ export default function Reports() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'volunteer_participation.csv'; a.click();
+    URL.revokeObjectURL(url);
   };
 
   const volunteerPDF = () => {
@@ -126,7 +126,13 @@ export default function Reports() {
       h.hoursWorked ?? 0,
       h.status || '',
     ]));
-    doc.autoTable({ head: [['Volunteer', 'Event', 'Date', 'Hours', 'Status']], body });
+    autoTable(doc, {
+      head: [['Volunteer', 'Event', 'Date', 'Hours', 'Status']],
+      body,
+      startY: 22,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [240, 240, 240] },
+    });
     doc.save('volunteer_participation.pdf');
   };
 
@@ -147,6 +153,7 @@ export default function Reports() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'event_details.csv'; a.click();
+    URL.revokeObjectURL(url);
   };
 
   const eventPDF = () => {
@@ -162,7 +169,16 @@ export default function Reports() {
         .filter(Boolean)
         .join(', '),
     ]));
-    doc.autoTable({ head: [['Event', 'Date', 'Location', 'Assigned/Required', 'Volunteers']], body });
+    autoTable(doc, {
+      head: [['Event', 'Date', 'Location', 'Assigned/Required', 'Volunteers']],
+      body,
+      startY: 22,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [240, 240, 240] },
+      columnStyles: {
+        4: { cellWidth: 90 }, // widen volunteers column a bit
+      },
+    });
     doc.save('event_details.pdf');
   };
 
